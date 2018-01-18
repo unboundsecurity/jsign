@@ -30,11 +30,7 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.PrivateKey;
-import java.security.Provider;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -42,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.dyadicsec.provider.DYCryptoProvider;
 import sun.security.pkcs11.SunPKCS11;
 
 import net.jsign.pe.PEFile;
@@ -73,6 +70,7 @@ class PESignerHelper {
     public static final String PARAM_PROXY_USER = "proxyUser";
     public static final String PARAM_PROXY_PASS = "proxyPass";
     public static final String PARAM_REPLACE = "replace";
+    public static final String PARAM_PARTITION = "partition";
 
     private Console console;
 
@@ -97,6 +95,7 @@ class PESignerHelper {
     private String proxyUser;
     private String proxyPass;
     private boolean replace;
+    private String partition;
 
     public PESignerHelper(Console console, String parameterName) {
         this.console = console;
@@ -208,6 +207,11 @@ class PESignerHelper {
         return this;
     }
 
+    public PESignerHelper partition(String partition) {
+        this.partition = partition;
+        return this;
+    }
+
     public PESignerHelper param(String key, String value) {
         if (value == null) {
             return this;
@@ -232,6 +236,7 @@ class PESignerHelper {
             case PARAM_PROXY_USER: return proxyUser(value);
             case PARAM_PROXY_PASS: return proxyPass(value);
             case PARAM_REPLACE:    return replace("true".equalsIgnoreCase(value));
+            case PARAM_PARTITION:  return partition(value);
             default:
                 throw new IllegalArgumentException("Unknown " + parameterName + ": " + key);
         }
@@ -244,40 +249,17 @@ class PESignerHelper {
     public PESigner build() throws SignerException {
         PrivateKey privateKey;
         Certificate[] chain;
-
-        // some exciting parameter validation...
-        if (keystore == null && keyfile == null && certfile == null) {
-            throw new SignerException("keystore " + parameterName + ", or keyfile and certfile " + parameterName + "s must be set");
-        }
-        if (keystore != null && (keyfile != null || certfile != null)) {
-            throw new SignerException("keystore " + parameterName + " can't be mixed with keyfile or certfile");
-        }
-        
         Provider provider = null;
-        if ("PKCS11".equals(storetype)) {
-            // the keystore parameter is either the provider name or the SunPKCS11 configuration file
-            if (keystore != null && keystore.exists()) {
-                provider = createSunPKCS11Provider(keystore);
-            } else if (keystore != null && keystore.getName().startsWith("SunPKCS11-")) {
-                provider = Security.getProvider(keystore.getName());
-                if (provider == null) {
-                    throw new SignerException("Security provider " + keystore.getName() + " not found");
-                }
-            } else {
-                throw new SignerException("keystore " + parameterName + " should either refer to the SunPKCS11 configuration file or to the name of the provider configured in jre/lib/security/java.security");
-            }
-        }
 
-        if (keystore != null) {
+        if ("UNBOUND".equalsIgnoreCase(storetype)) {
+            provider = new DYCryptoProvider(partition);
             KeyStore ks;
-            try {
-                ks = KeyStoreUtils.load(keystore, storetype, storepass, provider);
-            } catch (KeyStoreException e) {
-                throw new SignerException(e.getMessage(), e);
-            }
 
-            if (alias == null) {
-                throw new SignerException("alias " + parameterName + " must be set");
+            try {
+                ks = KeyStore.getInstance("PKCS11", provider);
+                ks.load(null);
+            } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException e) {
+                throw new SignerException(e.getMessage(), e);
             }
 
             try {
@@ -285,51 +267,107 @@ class PESignerHelper {
             } catch (KeyStoreException e) {
                 throw new SignerException(e.getMessage(), e);
             }
-            if (chain == null) {
-                throw new SignerException("No certificate found under the alias '" + alias + "' in the keystore " + (provider != null ? provider.getName() : keystore));
-            }
-
-            char[] password = keypass != null ? keypass.toCharArray() : storepass.toCharArray();
 
             try {
-                privateKey = (PrivateKey) ks.getKey(alias, password);
+                privateKey = (PrivateKey) ks.getKey(alias, null);
             } catch (Exception e) {
                 throw new SignerException("Failed to retrieve the private key from the keystore", e);
             }
 
-        } else {
-            // separate private key and certificate files (PVK/SPC)
-            if (keyfile == null) {
-                throw new SignerException("keyfile " + parameterName + " must be set");
-            }
-            if (!keyfile.exists()) {
-                throw new SignerException("The keyfile " + keyfile + " couldn't be found");
-            }
-            if (certfile == null) {
-                throw new SignerException("certfile " + parameterName + " must be set");
-            }
-            if (!certfile.exists()) {
-                throw new SignerException("The certfile " + certfile + " couldn't be found");
-            }
-
-            // load the certificate chain
-            try {
-                chain = loadCertificateChain(certfile);
-            } catch (Exception e) {
-                throw new SignerException("Failed to load the certificate from " + certfile, e);
-            }
-
-            // load the private key
-            try {
-                privateKey = PrivateKeyUtils.load(keyfile, keypass != null ? keypass : storepass);
-            } catch (Exception e) {
-                throw new SignerException("Failed to load the private key from " + keyfile, e);
-            }
+            Security.addProvider(provider);
         }
 
-        if (alg != null && DigestAlgorithm.of(alg) == null) {
-            throw new SignerException("The digest algorithm " + alg + " is not supported");
+        else {
+
+
+            // some exciting parameter validation...
+            if (keystore == null && keyfile == null && certfile == null) {
+                throw new SignerException("keystore " + parameterName + ", or keyfile and certfile " + parameterName + "s must be set");
+            }
+            if (keystore != null && (keyfile != null || certfile != null)) {
+                throw new SignerException("keystore " + parameterName + " can't be mixed with keyfile or certfile");
+            }
+
+
+            if ("PKCS11".equals(storetype)) {
+                // the keystore parameter is either the provider name or the SunPKCS11 configuration file
+                if (keystore != null && keystore.exists()) {
+                    provider = createSunPKCS11Provider(keystore);
+                } else if (keystore != null && keystore.getName().startsWith("SunPKCS11-")) {
+                    provider = Security.getProvider(keystore.getName());
+                    if (provider == null) {
+                        throw new SignerException("Security provider " + keystore.getName() + " not found");
+                    }
+                } else {
+                    throw new SignerException("keystore " + parameterName + " should either refer to the SunPKCS11 configuration file or to the name of the provider configured in jre/lib/security/java.security");
+                }
+            }
+
+            if (keystore != null) {
+                KeyStore ks;
+                try {
+                    ks = KeyStoreUtils.load(keystore, storetype, storepass, provider);
+                } catch (KeyStoreException e) {
+                    throw new SignerException(e.getMessage(), e);
+                }
+
+                if (alias == null) {
+                    throw new SignerException("alias " + parameterName + " must be set");
+                }
+
+                try {
+                    chain = ks.getCertificateChain(alias);
+                } catch (KeyStoreException e) {
+                    throw new SignerException(e.getMessage(), e);
+                }
+                if (chain == null) {
+                    throw new SignerException("No certificate found under the alias '" + alias + "' in the keystore " + (provider != null ? provider.getName() : keystore));
+                }
+
+                char[] password = keypass != null ? keypass.toCharArray() : storepass.toCharArray();
+
+                try {
+                    privateKey = (PrivateKey) ks.getKey(alias, password);
+                } catch (Exception e) {
+                    throw new SignerException("Failed to retrieve the private key from the keystore", e);
+                }
+
+            } else {
+                // separate private key and certificate files (PVK/SPC)
+                if (keyfile == null) {
+                    throw new SignerException("keyfile " + parameterName + " must be set");
+                }
+                if (!keyfile.exists()) {
+                    throw new SignerException("The keyfile " + keyfile + " couldn't be found");
+                }
+                if (certfile == null) {
+                    throw new SignerException("certfile " + parameterName + " must be set");
+                }
+                if (!certfile.exists()) {
+                    throw new SignerException("The certfile " + certfile + " couldn't be found");
+                }
+
+                // load the certificate chain
+                try {
+                    chain = loadCertificateChain(certfile);
+                } catch (Exception e) {
+                    throw new SignerException("Failed to load the certificate from " + certfile, e);
+                }
+
+                // load the private key
+                try {
+                    privateKey = PrivateKeyUtils.load(keyfile, keypass != null ? keypass : storepass);
+                } catch (Exception e) {
+                    throw new SignerException("Failed to load the private key from " + keyfile, e);
+                }
+            }
+
+            if (alg != null && DigestAlgorithm.of(alg) == null) {
+                throw new SignerException("The digest algorithm " + alg + " is not supported");
+            }
+
         }
+
 
         try {
             initializeProxy(proxyUrl, proxyUser, proxyPass);
