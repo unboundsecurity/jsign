@@ -7,7 +7,7 @@
    <property name="build" location="build" />
    <property name="dist" location="dist" />
    <property name="lib" location="lib" />
-   <property name="ekm.client.jar" location="..\..\ekm-java-client\dist\ekm-java-provider-2.0.jar" />
+   <property name="ekm.client.jar" location="..\ekm-java-provider-2.0.jar" />
    <echo message="Using Java version ${ant.java.version}." />
    <path id="classpath">
       <fileset dir="lib">
