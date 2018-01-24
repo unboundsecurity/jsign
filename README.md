@@ -28,7 +28,18 @@ See https://ebourg.github.com/jsign for more information.
 Add the Unbound Java Security Provider Jar (ekm-java-provider-2.0) to root directory of the project and run `ant`.
 
 ## Usage
-### cli
-The cli jar can be found in \jsign-cli directory and all its dependencies in \jsign-cli\lib. 
+### cli 
 
 To sign : `java -jar .\ub-jsgin-cli.jar --partition part1 --storetype unbound --alias key-alias file-name`
+
+### ant
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="UbSignExe" basedir="." default="ubsign">
+   <target name="ubsign">
+      <taskdef name="UbSignExe" classname="net.jsign.PESignerTask" classpath="ub-jsgin-ant.jar" />
+      <UbSignExe file="file-name" partition="part1" alias="key-alias" storetype="unbound" />
+   </target>
+</project>
+```
