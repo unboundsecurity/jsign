@@ -54,7 +54,7 @@ public class PESignerCLI {
         options = new Options();
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_KEYSTORE).withArgName("FILE").withDescription("The keystore file, or the SunPKCS11 configuration file").withType(File.class).create('s'));
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_STOREPASS).withArgName("PASSWORD").withDescription("The password to open the keystore").create());
-        options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_STORETYPE).withArgName("TYPE").withDescription("The type of the keystore:\n- JKS: Java keystore (.jks files)\n- PKCS12: Standard PKCS#12 keystore (.p12 or .pfx files)\n- PKCS11: PKCS#11 hardware token\n").create());
+        options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_STORETYPE).withArgName("TYPE").withDescription("The type of the keystore:\n- JKS: Java keystore (.jks files)\n- PKCS12: Standard PKCS#12 keystore (.p12 or .pfx files)\n- PKCS11: PKCS#11 hardware token\n- DYADIC: Use dyadic\n" ).create());
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_ALIAS).withArgName("NAME").withDescription("The alias of the certificate used for signing in the keystore.").create('a'));
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_KEYPASS).withArgName("PASSWORD").withDescription("The password of the private key. When using a keystore, this parameter can be omitted if the keystore shares the same password.").create());
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_KEYFILE).withArgName("FILE").withDescription("The file containing the private key. PEM and PVK files are supported. ").withType(File.class).create());
@@ -69,6 +69,7 @@ public class PESignerCLI {
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_PROXY_URL).withArgName("URL").withDescription("The URL of the HTTP proxy").create());
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_PROXY_USER).withArgName("NAME").withDescription("The user for the HTTP proxy. If an user is needed.").create());
         options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_PROXY_PASS).withArgName("PASSWORD").withDescription("The password for the HTTP proxy user. If an user is needed.").create());
+        options.addOption(OptionBuilder.hasArg().withLongOpt(PARAM_PARTITION).withDescription("Unbound partition name.").create());
         options.addOption(OptionBuilder.withLongOpt(PARAM_REPLACE).withDescription("Tells if previous signatures should be replaced.").create());
         options.addOption(OptionBuilder.withLongOpt("help").withDescription("Print the help").create('h'));
     }
@@ -102,6 +103,7 @@ public class PESignerCLI {
         setOption(PARAM_PROXY_URL, helper, cmd);
         setOption(PARAM_PROXY_USER, helper, cmd);
         setOption(PARAM_PROXY_PASS, helper, cmd);
+        setOption(PARAM_PARTITION, helper, cmd);
         helper.replace(cmd.hasOption("replace"));
 
         File file = cmd.getArgList().isEmpty() ? null : new File(cmd.getArgList().get(0));
