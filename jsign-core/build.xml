@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Dy Jsign" default="rebuild" basedir=".">
-   <description>Build file for EKM performance tool</description>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Ub Jsign" default="rebuild" basedir=".">
+   <description>Build file for Unbound Jsign</description>
    <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
    <!-- set global properties for this build -->
    <property name="src" location="src" />
@@ -27,14 +27,14 @@
    <target name="convert">
       <ivy:convertpom pomFile="pom.xml" ivyFile="ivy.xml" />
    </target>
-   <target name="compile" depends="resolve" description="compile EKM config sources">
+   <target name="compile" depends="resolve" description="compile Unbound Jsign core">
       <mkdir dir="${build}" />
       <mkdir dir="${lib}" />
       <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.7" source="1.7" deprecation="true">
          <classpath refid="classpath" />
       </javac>
    </target>
-   <target name="dist" depends="compile" description="creates the EKM config jar file">
+   <target name="dist" depends="compile" description="creates Unbound Jsign jar file">
       <mkdir dir="${dist}" />
       <jar jarfile="${dist}/dy-jsgin.jar" duplicate="preserve">
          <fileset dir="${build}" />
