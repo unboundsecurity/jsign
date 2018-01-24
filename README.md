@@ -30,7 +30,7 @@ Add the Unbound Java Security Provider Jar (ekm-java-provider-2.0) to root direc
 ## Usage
 ### cli 
 
-To sign : `java -jar .\ub-jsgin-cli.jar --partition part1 --storetype unbound --alias key-alias file-name`
+`java -jar .\ub-jsgin-cli.jar --partition part1 --storetype unbound --alias key-alias file-name`
 
 ### ant
 ```xml
