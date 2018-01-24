@@ -7,7 +7,7 @@
    <property name="build" location="build" />
    <property name="dist" location="dist" />
    <property name="lib" location="lib" />
-   <property name="ubjsign.jar" location="..\dyjsign\dist\ub-jsgin.jar" />
+   <property name="ubjsign.jar" location="..\jsign-core\dist\ub-jsgin.jar" />
    <path id="classpath">
       <fileset dir="lib">
          <include name="**/*.jar" />
@@ -15,7 +15,7 @@
       <fileset file="${ubjsign.jar}" />
    </path>
    <target name="build.ubjsign.core">
-      <ant antfile="../dyjsign/build.xml" target="rebuild" inheritAll="false" />
+      <ant antfile="../jsign-core/build.xml" target="rebuild" inheritAll="false" />
    </target>
    <target name="resolve" description="retrieve dependencies with ivy">
       <ivy:retrieve type="jar, bundle" />
@@ -41,7 +41,7 @@
       <mkdir dir="${dist}" />
       <copy file="${ubjsign.jar}" todir="${lib}" />
       <copy todir="${lib}">
-         <fileset dir="..\dyjsign\lib" />
+         <fileset dir="..\jsign-core\lib" />
       </copy>
       <path id="dist.classpath">
          <fileset dir="lib">
