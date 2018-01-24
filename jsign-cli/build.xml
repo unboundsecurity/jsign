@@ -14,9 +14,6 @@
       </fileset>
       <fileset file="${ubjsign.jar}" />
    </path>
-   <target name="build.ubjsign.core">
-      <ant antfile="../jsign-core/build.xml" target="rebuild" inheritAll="false" />
-   </target>
    <target name="resolve" description="retrieve dependencies with ivy">
       <ivy:retrieve type="jar, bundle" />
    </target>
@@ -61,12 +58,11 @@
             <attribute name="Class-Path" value="${mf.classpath}" />
          </manifest>
       </jar>
-	  <copy file="${dist}/ub-jsgin-cli.jar" todir="." />
    </target>
    <target name="clean" description="clean up">
       <delete dir="${build}" />
       <delete dir="${dist}" />
       <delete dir="${lib}" />
    </target>
-   <target name="rebuild" description="rebuilds all from scratch" depends="build.ubjsign.core, clean, convert, dist" />
+   <target name="rebuild" description="rebuilds all from scratch" depends="clean, convert, dist" />
 </project>
