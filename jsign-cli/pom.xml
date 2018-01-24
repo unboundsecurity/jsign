@@ -28,11 +28,11 @@
   </licenses>
 
   <dependencies>
-    <dependency>
+    <!--dependency>
       <groupId>net.jsign</groupId>
       <artifactId>jsign-core</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </-dependency-->
 
     <dependency>
       <groupId>commons-cli</groupId>
