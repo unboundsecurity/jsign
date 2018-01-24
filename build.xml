@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Ub Jsign CLI" default="rebuild" basedir=".">
+   <description>Build file for Unbound Jsign</description>
+   <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+   <!-- set global properties for this build -->
+   <property name="lib" location="lib" />
+   <property name="dist" location="dist" />
+   <target name="build" description="build Unbound Jsign executables">
+      <delete dir="${lib}" />
+   </target>
+   <target name="build.ubjsign.core">
+      <ant antfile="jsign-core/build.xml" target="rebuild" inheritAll="false" />
+   </target>
+   <target name="build.ubjsign.cli">
+      <ant antfile="jsign-cli/build.xml" target="rebuild" inheritAll="false" />
+   </target>
+   <target name="build.ubjsign.ant">
+      <ant antfile="jsign-ant/build.xml" target="rebuild" inheritAll="false" />
+   </target>
+   <target name="copy">
+      <mkdir dir="${lib}" />
+      <copy todir="${lib}">
+         <fileset dir="jsign-core/lib" />
+      </copy>
+      <copy todir="${lib}">
+         <fileset dir="jsign-cli/lib" />
+      </copy>
+      <copy todir="${lib}">
+         <fileset dir="jsign-ant/lib" />
+      </copy>
+      <copy file="jsign-cli/dist/ub-jsgin-cli.jar" todir="." />
+      <copy file="jsign-ant/dist/ub-jsgin-ant.jar" todir="." />
+   </target>
+   <target name="clean" description="clean up">
+      <delete dir="${lib}" />
+      <delete file="jsign-cli/dist/ub-jsgin-cli.jar" />
+      <delete file="jsign-ant/dist/ub-jsgin-ant.jar" />
+   </target>
+   <target name="rebuild" description="rebuilds all from scratch" depends="clean, build.ubjsign.core, build.ubjsign.cli , build.ubjsign.ant, copy" />
+</project>
