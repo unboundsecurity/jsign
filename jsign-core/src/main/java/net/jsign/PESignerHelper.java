@@ -251,7 +251,7 @@ class PESignerHelper {
         Certificate[] chain;
         Provider provider = null;
 
-        if ("UNBOUND".equalsIgnoreCase(storetype)) {
+        if ("DYADIC".equalsIgnoreCase(storetype)) {
             provider = new DYCryptoProvider(partition);
             KeyStore ks;
 
