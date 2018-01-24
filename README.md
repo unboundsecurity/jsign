@@ -34,12 +34,11 @@ To sign : `java -jar .\ub-jsgin-cli.jar --partition part1 --storetype unbound --
 
 ### ant
 ```xml
-<?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="UbSignExe" basedir="." default="ubsign">
    <target name="ubsign">
       <taskdef name="UbSignExe" classname="net.jsign.PESignerTask" classpath="ub-jsgin-ant.jar" />
-      <UbSignExe file="file-name" partition="part1" alias="key-alias" storetype="unbound" />
+      <UbSignExe file="wineyes.exe" partition="p1" alias="test" storetype="unbound" />
    </target>
 </project>
 ```
