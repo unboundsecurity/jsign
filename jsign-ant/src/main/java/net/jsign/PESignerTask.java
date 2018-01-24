@@ -74,6 +74,10 @@ public class PESignerTask extends Task {
     /** The number of seconds to wait between timestamping retries */
     private int tsretrywait = -1;
 
+
+    /** The unbound partition name */
+    private String partition;
+
     /** Tells if previous signatures should be replaced */
     private boolean replace;
 
@@ -137,9 +141,15 @@ public class PESignerTask extends Task {
         this.tsretrywait = tsretrywait;
     }
 
+    public void setPartition(String partition) {
+        this.partition = partition;
+    }
+
     public void setReplace(boolean replace) {
         this.replace = replace;
     }
+
+
 
     @Override
     public void execute() throws BuildException {
@@ -160,6 +170,7 @@ public class PESignerTask extends Task {
             helper.tsmode(tsmode);
             helper.tsretries(tsretries);
             helper.tsretrywait(tsretrywait);
+            helper.partition(partition);
             helper.replace(replace);
             
             helper.sign(file);
