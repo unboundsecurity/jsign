@@ -38,7 +38,6 @@
       <mkdir dir="${dist}" />
       <jar jarfile="${dist}/ub-jsgin.jar" duplicate="preserve">
          <fileset dir="${build}" />
-         <!--zipgroupfileset dir="${lib}" includes="*.jar" excludes="bc*"/-->
       </jar>
       <copy file="${ekm.client.jar}" todir="${lib}" />
    </target>
