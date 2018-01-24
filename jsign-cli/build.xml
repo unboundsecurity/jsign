@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Ub Jsign CLI" default="rebuild" basedir=".">
+   <description>Build file for Unbound Jsign Cli</description>
+   <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+   <!-- set global properties for this build -->
+   <property name="src" location="src/main/java" />
+   <property name="build" location="build" />
+   <property name="dist" location="dist" />
+   <property name="lib" location="lib" />
+   <property name="ubjsign.jar" location="..\dyjsign\dist\ub-jsgin.jar" />
+   <path id="classpath">
+      <fileset dir="lib">
+         <include name="**/*.jar" />
+      </fileset>
+      <fileset file="${ubjsign.jar}" />
+   </path>
+   <target name="build.ubjsign.core">
+      <ant antfile="../dyjsign/build.xml" target="rebuild" inheritAll="false" />
+   </target>
+   <target name="resolve" description="retrieve dependencies with ivy">
+      <ivy:retrieve type="jar, bundle" />
+   </target>
+   <target name="report" depends="resolve" description="generates a report of dependencies">
+      <ivy:report todir="${build}" />
+   </target>
+   <target name="clean-cache" description="clean the ivy cache">
+      <ivy:cleancache />
+   </target>
+   <target name="convert">
+      <ivy:convertpom pomFile="pom.xml" ivyFile="ivy.xml" />
+   </target>
+   <target name="compile" depends="resolve" description="compile Unbound Jsign Cli sources">
+      <mkdir dir="${build}" />
+      <mkdir dir="${lib}" />
+      <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.7" source="1.7" deprecation="true">
+         <exclude name="${src}/test/*" />
+         <classpath refid="classpath" />
+      </javac>
+   </target>
+   <target name="dist" depends="compile" description="creates the Unbound Jsign Cli file">
+      <mkdir dir="${dist}" />
+      <copy file="${ubjsign.jar}" todir="${lib}" />
+      <copy todir="${lib}">
+         <fileset dir="..\dyjsign\lib" />
+      </copy>
+      <path id="dist.classpath">
+         <fileset dir="lib">
+            <include name="**/*.jar" />
+         </fileset>
+      </path>
+      <pathconvert property="mf.classpath" refid="dist.classpath" pathsep=" ">
+         <chainedmapper>
+            <flattenmapper />
+            <globmapper from="*" to="lib/*" />
+         </chainedmapper>
+      </pathconvert>
+      <jar jarfile="${dist}/ub-jsgin-cli.jar" duplicate="preserve">
+         <fileset dir="${build}" />
+         <manifest>
+            <attribute name="Main-Class" value="net.jsign.PESignerCLI" />
+            <attribute name="Class-Path" value="${mf.classpath}" />
+         </manifest>
+      </jar>
+	  <copy file="${dist}/ub-jsgin-cli.jar" todir="." />
+   </target>
+   <target name="clean" description="clean up">
+      <delete dir="${build}" />
+      <delete dir="${dist}" />
+      <delete dir="${lib}" />
+   </target>
+   <target name="rebuild" description="rebuilds all from scratch" depends="build.ubjsign.core, clean, convert, dist" />
+</project>
