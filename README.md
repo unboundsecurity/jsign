@@ -16,7 +16,7 @@ See https://ebourg.github.com/jsign for more information.
 * The `lib:org.apache.ivy.ant` task is installed. Refer to http://ant.apache.org/ivy/history/2.2.0/ant.html for further details
 
 ## Build
-Add the Unbound Java Security Provider Jar (ekm-java-provider-2.0) to root directory of the project and run `ant`.
+Add the Unbound Java Security Provider (`ekm-java-provider-2.0.jar`) file to root directory of the project and run `ant`.
 
 ## Usage
 
