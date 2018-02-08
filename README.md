@@ -25,7 +25,7 @@ Add the Unbound Java Security Provider (`ekm-java-provider-2.0.jar`) file to roo
 To sign a `<file-name>` using key named `<key-alias>`, use the following syntax:
 
 ```
-java -jar .\ub-jsgin-cli.jar 
+java -jar .\ub-jsign-cli.jar 
 [--partition <EKM Partition Name>]     // if not specified - uses the first found partition
 --storetype dyadic                     // mandatory
 --alias <key-alias>                    // alias of key name used for signing 
@@ -37,7 +37,7 @@ Example:
 In the install directory, run
 
 ```
-java -jar .\ub-jsgin-cli.jar --partition part1 --storetype dyadic --alias key-alias file-name
+java -jar .\ub-jsign-cli.jar --partition part1 --storetype dyadic --alias key-alias file-name
 ```
 
 ### Using Ant
@@ -53,7 +53,7 @@ Whereas the `jsign.xml` is
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="UbSign" basedir="." default="ubsign">
    <target name="ubsign">
-      <taskdef name="UbSignTask" classname="net.jsign.PESignerTask" classpath="ub-jsgin-ant.jar" />
+      <taskdef name="UbSignTask" classname="net.jsign.PESignerTask" classpath="ub-jsign-ant.jar" />
       <UbSignTask file="file-name" partition="part1" alias="key-alias" storetype="dyadic" />
    </target>
 </project>
