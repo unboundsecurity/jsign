@@ -12,8 +12,15 @@ See https://ebourg.github.com/jsign for more information.
 
 ## Prerequisites
 * EKM client is installed
-* Ant (Version >= 1.93) is installed. Refer to https://ant.apache.org/bindownload.cgi for further details
-* The `lib:org.apache.ivy.ant` task is installed. Refer to http://ant.apache.org/ivy/history/2.2.0/ant.html for further details
+
+* Ant (Version >= 1.93) is installed. 
+To install on RH/Centos, use `yum install ant`.
+Refer to https://ant.apache.org/bindownload.cgi for further details.
+
+
+* The `lib:org.apache.ivy.ant` task is installed. 
+To install on RH/Centos, use `yum install ivy`.
+Refer to http://ant.apache.org/ivy/history/2.2.0/ant.html for further details.
 
 ## Build
 Add the Unbound Java Security Provider (`ekm-java-provider-2.0.jar`) file to root directory of the project and run `ant`.
