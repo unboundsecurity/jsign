@@ -7,7 +7,7 @@
    <property name="build" location="build" />
    <property name="dist" location="dist" />
    <property name="lib" location="lib" />
-   <property name="ubjsign.jar" location="..\jsign-core\dist\ub-jsgin.jar" />
+   <property name="ubjsign.jar" location="..\jsign-core\dist\ub-jsign.jar" />
    <path id="classpath">
       <fileset dir="lib">
          <include name="**/*.jar" />
@@ -51,7 +51,7 @@
             <globmapper from="*" to="lib/*" />
          </chainedmapper>
       </pathconvert>
-      <jar jarfile="${dist}/ub-jsgin-ant.jar" duplicate="preserve">
+      <jar jarfile="${dist}/ub-jsign-ant.jar" duplicate="preserve">
          <fileset dir="${build}" />
          <manifest>
             <attribute name="Main-Class" value="net.jsign.PESignerCLI" />
