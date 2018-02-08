@@ -36,7 +36,7 @@
    </target>
    <target name="dist" depends="compile" description="creates Unbound Jsign jar file">
       <mkdir dir="${dist}" />
-      <jar jarfile="${dist}/ub-jsgin.jar" duplicate="preserve">
+      <jar jarfile="${dist}/ub-jsign.jar" duplicate="preserve">
          <fileset dir="${build}" />
       </jar>
       <copy file="${ekm.client.jar}" todir="${lib}" />
