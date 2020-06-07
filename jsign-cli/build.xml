@@ -29,7 +29,7 @@
    <target name="compile" depends="resolve" description="compile Unbound Jsign Cli sources">
       <mkdir dir="${build}" />
       <mkdir dir="${lib}" />
-      <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.7" source="1.7" deprecation="true">
+      <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.8" source="1.8" deprecation="true">
          <exclude name="${src}/test/*" />
          <classpath refid="classpath" />
       </javac>
@@ -54,7 +54,7 @@
       <jar jarfile="${dist}/ub-jsign-cli.jar" duplicate="preserve">
          <fileset dir="${build}" />
          <manifest>
-            <attribute name="Main-Class" value="net.jsign.PESignerCLI" />
+            <attribute name="Main-Class" value="net.jsign.JsignCLI" />
             <attribute name="Class-Path" value="${mf.classpath}" />
          </manifest>
       </jar>

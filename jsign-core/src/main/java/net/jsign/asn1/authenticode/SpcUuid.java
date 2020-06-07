@@ -32,10 +32,15 @@ import org.bouncycastle.asn1.DEROctetString;
  */
 public class SpcUuid  extends ASN1Object {
 
-    private static final DEROctetString UUID = new DEROctetString(new BigInteger("a6b586d5b4a12466ae05a217da8e60d6", 16).toByteArray());
+    private byte[] uuid = new byte[16];
+
+    public SpcUuid(String uuid) {
+        byte[] tmp = new BigInteger(uuid.replaceAll("-", ""), 16).toByteArray();
+        System.arraycopy(tmp, tmp.length - this.uuid.length, this.uuid, 0, this.uuid.length);
+    }
 
     @Override
     public ASN1Primitive toASN1Primitive() {
-        return UUID;
+        return new DEROctetString(uuid);
     }
 }

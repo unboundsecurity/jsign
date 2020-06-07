@@ -23,9 +23,11 @@ import java.security.KeyException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class PrivateKeyUtilsTest extends TestCase {
+import static org.junit.Assert.*;
+
+public class PrivateKeyUtilsTest {
 
     private static final BigInteger PRIVATE_EXPONENT =
             new BigInteger("13788674422761232192109366695045739320662968796524533596546649277291656131659948065389630" +
@@ -33,20 +35,24 @@ public class PrivateKeyUtilsTest extends TestCase {
                            "38747175970780043259305835482179875435536692028556840275049932216177725039464021845390956" +
                            "48749365951054152409123155429217112278873");
 
+    @Test
     public void testLoadPKCS8PEM() throws Exception {
-        testLoadPEM(new File("target/test-classes/privatekey.pkcs8.pem"), null);
+        testLoadPEM(new File("target/test-classes/keystores/privatekey.pkcs8.pem"), null);
     }
 
+    @Test
     public void testLoadEncryptedPKCS8PEM() throws Exception {
-        testLoadPEM(new File("target/test-classes/privatekey-encrypted.pkcs8.pem"), "password");
+        testLoadPEM(new File("target/test-classes/keystores/privatekey-encrypted.pkcs8.pem"), "password");
     }
 
+    @Test
     public void testLoadPKCS1PEM() throws Exception {
-        testLoadPEM(new File("target/test-classes/privatekey.pkcs1.pem"), null);
+        testLoadPEM(new File("target/test-classes/keystores/privatekey.pkcs1.pem"), null);
     }
 
+    @Test
     public void testLoadEncryptedPKCS1PEM() throws Exception {
-        testLoadPEM(new File("target/test-classes/privatekey-encrypted.pkcs1.pem"), "password");
+        testLoadPEM(new File("target/test-classes/keystores/privatekey-encrypted.pkcs1.pem"), "password");
     }
 
     private void testLoadPEM(File file, String password) throws Exception {
@@ -58,9 +64,10 @@ public class PrivateKeyUtilsTest extends TestCase {
         assertEquals("private exponent", PRIVATE_EXPONENT, rsakey.getPrivateExponent());
     }
 
+    @Test
     public void testLoadWrongPEMObject() throws Exception {
         try {
-            PrivateKeyUtils.load(new File("target/test-classes/jsign-test-certificate.pem"), null);
+            PrivateKeyUtils.load(new File("target/test-classes/keystores/jsign-test-certificate.pem"), null);
             fail("No exception thrown");
         } catch (KeyException e) {
             Throwable cause = e.getCause();
@@ -68,8 +75,9 @@ public class PrivateKeyUtilsTest extends TestCase {
         }
     }
 
+    @Test
     public void testLoadEmptyPEM() throws Exception {
-        File file = new File("target/test-classes/empty.pem");
+        File file = new File("target/test-classes/keystores/empty.pem");
         FileWriter writer = new FileWriter(file);
         writer.write("");
         writer.close();

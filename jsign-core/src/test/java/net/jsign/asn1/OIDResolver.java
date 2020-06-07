@@ -31,7 +31,7 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 
 /**
  * Utility class for fetching human readable descriptions of object identifiers (OID).
- * The resolved OIDs are cached in a <tt>oid.txt</tt> file in the local directory.
+ * The resolved OIDs are cached in a <code>oid.txt</code> file in the local directory.
  * 
  * @author Emmanuel Bourg
  * @since 1.0
@@ -75,11 +75,13 @@ public class OIDResolver {
 
             conn.disconnect();
 
-            cache.put(oid.getId(), description);
-            FileOutputStream out = new FileOutputStream(file);
-            cache.store(out, null);
-            out.flush();
-            out.close();
+            if (description != null) {
+                cache.put(oid.getId(), description);
+                FileOutputStream out = new FileOutputStream(file);
+                cache.store(out, null);
+                out.flush();
+                out.close();
+            }
         }
         
         return cache.getProperty(oid.getId()) + " (" + oid.getId() + ")";

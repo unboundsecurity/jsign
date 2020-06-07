@@ -30,7 +30,7 @@
    <target name="compile" depends="resolve" description="compile Unbound Jsign core">
       <mkdir dir="${build}" />
       <mkdir dir="${lib}" />
-      <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.7" source="1.7" deprecation="true">
+      <javac srcdir="${src}" destdir="${build}" includeAntRuntime="false" target="1.8" source="1.8" deprecation="true">
          <classpath refid="classpath" />
       </javac>
    </target>

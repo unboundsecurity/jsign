@@ -21,9 +21,11 @@ import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class PVKTest extends TestCase {
+import static org.junit.Assert.*;
+
+public class PVKTest {
 
     private static final BigInteger PRIVATE_EXPONENT =
             new BigInteger("13788674422761232192109366695045739320662968796524533596546649277291656131659948065389630" +
@@ -37,16 +39,19 @@ public class PVKTest extends TestCase {
                            "63776062597224618555740476093967060229674515611975718626261740683864624806740655247266908" +
                            "985568698016685062096774422670704602453741");
 
+    @Test
     public void testParseUnencrypted() throws Exception {
-        testParse("src/test/resources/privatekey.pvk");
+        testParse("src/test/resources/keystores/privatekey.pvk");
     }
 
+    @Test
     public void testParseEncryptedWeak() throws Exception {
-        testParse("src/test/resources/privatekey-encrypted.pvk");
+        testParse("src/test/resources/keystores/privatekey-encrypted.pvk");
     }
 
+    @Test
     public void testParseEncryptedStrong() throws Exception {
-        testParse("src/test/resources/privatekey-encrypted-strong.pvk");
+        testParse("src/test/resources/keystores/privatekey-encrypted-strong.pvk");
     }
 
     private void testParse(String filename) throws Exception {
@@ -58,34 +63,33 @@ public class PVKTest extends TestCase {
         assertEquals("modulus", MODULUS, rsakey.getModulus());
     }
 
+    @Test
     public void testCompare() throws Exception {
-        PrivateKey key1 = PVK.parse(new File("src/test/resources/privatekey.pvk"), "password");
-        PrivateKey key2 = PVK.parse(new File("src/test/resources/privatekey-encrypted.pvk"), "password");
+        PrivateKey key1 = PVK.parse(new File("src/test/resources/keystores/privatekey.pvk"), "password");
+        PrivateKey key2 = PVK.parse(new File("src/test/resources/keystores/privatekey-encrypted.pvk"), "password");
         
         assertEquals(key1, key2);
     }
 
+    @Test(expected = IllegalArgumentException.class)
     public void testInvalidFile() throws Exception {
-        try {
-            PVK.parse(new File("src/test/resources/keystore.jks"), null);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        PVK.parse(new File("src/test/resources/keystores/keystore.jks"), null);
     }
 
+    @Test
     public void testInvalidPassword() throws Exception {
         try {
-            PVK.parse(new File("src/test/resources/privatekey-encrypted.pvk"), "secret");
+            PVK.parse(new File("src/test/resources/keystores/privatekey-encrypted.pvk"), "secret");
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException e) {
             assertEquals("exception message", "Unable to decrypt the PVK key, please verify the password", e.getMessage());
         }
     }
 
+    @Test
     public void testMissingPassword() throws Exception {
         try {
-            PVK.parse(new File("src/test/resources/privatekey-encrypted.pvk"), null);
+            PVK.parse(new File("src/test/resources/keystores/privatekey-encrypted.pvk"), null);
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException e) {
             assertEquals("exception message", "Unable to decrypt the PVK key, please verify the password", e.getMessage());

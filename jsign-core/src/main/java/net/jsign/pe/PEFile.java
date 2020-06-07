@@ -32,13 +32,21 @@ import java.util.Date;
 import java.util.List;
 
 import net.jsign.DigestAlgorithm;
+import net.jsign.Signable;
 import net.jsign.asn1.authenticode.AuthenticodeObjectIdentifiers;
+import net.jsign.asn1.authenticode.SpcAttributeTypeAndOptionalValue;
+import net.jsign.asn1.authenticode.SpcIndirectDataContent;
+import net.jsign.asn1.authenticode.SpcPeImageData;
 
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.cms.Attribute;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.DigestInfo;
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSProcessable;
@@ -55,7 +63,7 @@ import org.bouncycastle.cms.SignerInformation;
  * @author Emmanuel Bourg
  * @since 1.0
  */
-public class PEFile implements Closeable {
+public class PEFile implements Signable, Closeable {
 
     /** The position of the PE header in the file */
     private final long peHeaderOffset;
@@ -70,10 +78,36 @@ public class PEFile implements Closeable {
     }
 
     /**
+     * Tells if the specified file is a Portable Executable file.
+     *
+     * @param file the file to check
+     * @return <code>true</code> if the file is a Portable Executable, <code>false</code> otherwise
+     * @throws IOException if an I/O error occurs
+     * @since 3.0
+     */
+    public static boolean isPEFile(File file) throws IOException {
+        if (!file.exists() && !file.isFile()) {
+            return false;
+        }
+        
+        try {
+            PEFile peFile = new PEFile(file);
+            peFile.close();
+            return true;
+        } catch (IOException e) {
+            if (e.getMessage().contains("DOS header signature not found") || e.getMessage().contains("PE signature not found")) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
      * Create a PEFile from the specified file.
      *
-     * @param file
-     * @throws IOException
+     * @param file the file to open
+     * @throws IOException if an I/O error occurs
      */
     public PEFile(File file) throws IOException {
         this(Files.newByteChannel(file.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE));
@@ -83,6 +117,8 @@ public class PEFile implements Closeable {
     /**
      * Create a PEFile from the specified channel.
      *
+     * @param channel the channel to read the file from
+     * @throws IOException if an I/O error occurs
      * @since 2.0
      */
     public PEFile(SeekableByteChannel channel) throws IOException {
@@ -109,6 +145,14 @@ public class PEFile implements Closeable {
         }
     }
 
+    public void save() throws IOException {
+    }
+
+    /**
+     * Closes the file
+     *
+     * @throws IOException if an I/O error occurs
+     */
     public synchronized void close() throws IOException {
         channel.close();
     }
@@ -170,6 +214,8 @@ public class PEFile implements Closeable {
     /**
      * The number of sections. This indicates the size of the section table,
      * which immediately follows the headers.
+     * 
+     * @return the number of sections
      */
     public int getNumberOfSections() {
         return readWord(peHeaderOffset, 6);
@@ -178,6 +224,8 @@ public class PEFile implements Closeable {
     /**
      * The low 32 bits of the number of seconds since 00:00 January 1, 1970
      * (a C runtime time_t value), that indicates when the file was created.
+     * 
+     * @return the PE file creation date
      */
     public Date getTimeDateStamp() {
         return new Date(1000 * readDWord(peHeaderOffset, 8));
@@ -187,6 +235,8 @@ public class PEFile implements Closeable {
      * The file offset of the COFF symbol table, or zero if no COFF symbol table
      * is present. This value should be zero for an image because COFF debugging
      * information is deprecated.
+     * 
+     * @return the offset of the COFF symbol table
      */
     public long getPointerToSymbolTable() {
         return readDWord(peHeaderOffset, 12);
@@ -197,6 +247,8 @@ public class PEFile implements Closeable {
      * locate the string table, which immediately follows the symbol table.
      * This value should be zero for an image because COFF debugging
      * information is deprecated.
+     * 
+     * @return the number of entries in the symbol table
      */
     public long getNumberOfSymbols() {
         return readDWord(peHeaderOffset, 16);
@@ -205,6 +257,8 @@ public class PEFile implements Closeable {
     /**
      * The size of the optional header, which is required for executable files
      * but not for object files. This value should be zero for an object file.
+     * 
+     * @return the size of the optional header
      */
     public int getSizeOfOptionalHeader() {
         return readWord(peHeaderOffset, 20);
@@ -212,6 +266,8 @@ public class PEFile implements Closeable {
 
     /**
      * The flags that indicate the attributes of the file. 
+     * 
+     * @return the characteristics flag
      */
     public int getCharacteristics() {
         return readWord(peHeaderOffset, 22);
@@ -223,6 +279,8 @@ public class PEFile implements Closeable {
 
     /**
      * The linker major version number.
+     * 
+     * @return the linker major version number
      */
     public int getMajorLinkerVersion() {
         return read(peHeaderOffset, 26);
@@ -230,6 +288,8 @@ public class PEFile implements Closeable {
 
     /**
      * The linker minor version number.
+     * 
+     * @return the linker minor version number
      */
     public int getMinorLinkerVersion() {
         return read(peHeaderOffset, 27);
@@ -238,6 +298,8 @@ public class PEFile implements Closeable {
     /**
      * The size of the code (text) section, or the sum of all code sections
      * if there are multiple sections.
+     * 
+     * @return the size of the code (text) section
      */
     public long getSizeOfCode() {
         return readDWord(peHeaderOffset, 28);
@@ -246,6 +308,8 @@ public class PEFile implements Closeable {
     /**
      * The size of the initialized data section, or the sum of all such
      * sections if there are multiple data sections.
+     * 
+     * @return the size of the initialized data section
      */
     public long getSizeOfInitializedData() {
         return readDWord(peHeaderOffset, 32);
@@ -254,6 +318,8 @@ public class PEFile implements Closeable {
     /**
      * The size of the uninitialized data section (BSS), or the sum of all such
      * sections if there are multiple BSS sections.
+     * 
+     * @return the size of the uninitialized data section (BSS)
      */
     public long getSizeOfUninitializedData() {
         return readDWord(peHeaderOffset, 36);
@@ -265,6 +331,8 @@ public class PEFile implements Closeable {
      * starting address. For device drivers, this is the address of the
      * initialization function. An entry point is optional for DLLs. When no
      * entry point is present, this field must be zero.
+     * 
+     * @return the address of the entry point
      */
     public long getAddressOfEntryPoint() {
         return readDWord(peHeaderOffset, 40);
@@ -273,6 +341,8 @@ public class PEFile implements Closeable {
     /**
      * The address that is relative to the image base of the beginning-of-code 
      * section when it is loaded into memory.
+     * 
+     * @return the code base address
      */
     public long getBaseOfCode() {
         return readDWord(peHeaderOffset, 44);
@@ -281,6 +351,8 @@ public class PEFile implements Closeable {
     /**
      * The address that is relative to the image base of the beginning-of-data 
      * section when it is loaded into memory (PE32 only).
+     * 
+     * @return the data base address
      */
     public long getBaseOfData() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -295,6 +367,8 @@ public class PEFile implements Closeable {
      * must be a multiple of 64 K. The default for DLLs is 0x10000000. The default
      * for Windows CE EXEs is 0x00010000. The default for Windows NT, Windows 2000,
      * Windows XP, Windows 95, Windows 98, and Windows Me is 0x00400000.
+     * 
+     * @return the image base address
      */
     public long getImageBase() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -308,6 +382,8 @@ public class PEFile implements Closeable {
      * The alignment (in bytes) of sections when they are loaded into memory.
      * It must be greater than or equal to FileAlignment. The default is the
      * page size for the architecture.
+     * 
+     * @return the size of the sections memory alignment (in bytes)
      */
     public long getSectionAlignment() {
         return readDWord(peHeaderOffset, 56);
@@ -319,6 +395,8 @@ public class PEFile implements Closeable {
      * 512 and 64 K, inclusive. The default is 512. If the SectionAlignment
      * is less than the architecture?s page size, then FileAlignment must
      * match SectionAlignment.
+     * 
+     * @return the alignment factor (in bytes)
      */
     public long getFileAlignment() {
         return readDWord(peHeaderOffset, 60);
@@ -326,6 +404,8 @@ public class PEFile implements Closeable {
 
     /**
      * The major version number of the required operating system.
+     * 
+     * @return the major version number of the required operating system
      */
     public int getMajorOperatingSystemVersion() {
         return readWord(peHeaderOffset, 64);
@@ -333,6 +413,8 @@ public class PEFile implements Closeable {
 
     /**
      * The minor version number of the required operating system.
+     * 
+     * @return the minor version number of the required operating system
      */
     public int getMinorOperatingSystemVersion() {
         return readWord(peHeaderOffset, 66);
@@ -340,6 +422,8 @@ public class PEFile implements Closeable {
 
     /**
      * The major version number of the image.
+     * 
+     * @return the major version number of the image
      */
     public int getMajorImageVersion() {
         return readWord(peHeaderOffset, 68);
@@ -347,6 +431,8 @@ public class PEFile implements Closeable {
 
     /**
      * The minor version number of the image.
+     * 
+     * @return the minor version number of the image
      */
     public int getMinorImageVersion() {
         return readWord(peHeaderOffset, 70);
@@ -354,6 +440,8 @@ public class PEFile implements Closeable {
 
     /**
      * The major version number of the subsystem.
+     * 
+     * @return the major version number of the subsystem
      */
     public int getMajorSubsystemVersion() {
         return readWord(peHeaderOffset, 72);
@@ -361,6 +449,8 @@ public class PEFile implements Closeable {
 
     /**
      * The minor version number of the subsystem.
+     * 
+     * @return the minor version number of the subsystem
      */
     public int getMinorSubsystemVersion() {
         return readWord(peHeaderOffset, 74);
@@ -368,6 +458,8 @@ public class PEFile implements Closeable {
 
     /**
      * Reserved, must be zero.
+     * 
+     * @return zero
      */
     public long getWin32VersionValue() {
         return readDWord(peHeaderOffset, 76);
@@ -376,6 +468,8 @@ public class PEFile implements Closeable {
     /**
      * The size (in bytes) of the image, including all headers, as the image
      * is loaded in memory. It must be a multiple of SectionAlignment.
+     * 
+     * @return the size of the image (in bytes)
      */
     public long getSizeOfImage() {
         return readDWord(peHeaderOffset, 80);
@@ -384,6 +478,8 @@ public class PEFile implements Closeable {
     /**
      * The combined size of an MS DOS stub, PE header, and section headers
      * rounded up to a multiple of FileAlignment.
+     * 
+     * @return the combined size of the headers
      */
     public long getSizeOfHeaders() {
         return readDWord(peHeaderOffset, 84);
@@ -391,6 +487,8 @@ public class PEFile implements Closeable {
 
     /**
      * The image file checksum.
+     * 
+     * @return the checksum of the image
      */
     public long getCheckSum() {
         return readDWord(peHeaderOffset, 88);
@@ -399,6 +497,8 @@ public class PEFile implements Closeable {
     /**
      * Compute the checksum of the image file. The algorithm for computing
      * the checksum is incorporated into IMAGHELP.DLL.
+     * 
+     * @return the checksum of the image
      */
     public synchronized long computeChecksum() {
         PEImageChecksum checksum = new PEImageChecksum(peHeaderOffset + 88);
@@ -410,6 +510,7 @@ public class PEFile implements Closeable {
             
             int len;
             while ((len = channel.read(b)) > 0) {
+                b.flip();
                 checksum.update(b.array(), 0, len);
             }
         } catch (IOException e) {
@@ -420,10 +521,10 @@ public class PEFile implements Closeable {
     }
 
     public synchronized void updateChecksum() {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt((int) computeChecksum());
-        
+        buffer.flip();
+
         try {
             channel.position(peHeaderOffset + 88);
             channel.write(buffer);
@@ -434,6 +535,8 @@ public class PEFile implements Closeable {
 
     /**
      * The subsystem that is required to run this image.
+     * 
+     * @return the required subsystem
      */
     public Subsystem getSubsystem() {
         return Subsystem.valueOf(readWord(peHeaderOffset, 92));
@@ -446,6 +549,8 @@ public class PEFile implements Closeable {
     /**
      * The size of the stack to reserve. Only SizeOfStackCommit is committed;
      * the rest is made available one page at a time until the reserve size is reached.
+     * 
+     * @return the size of the stack to reserve
      */
     public long getSizeOfStackReserve() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -457,6 +562,8 @@ public class PEFile implements Closeable {
 
     /**
      * The size of the stack to commit.
+     * 
+     * @return the size of the stack to commit
      */
     public long getSizeOfStackCommit() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -470,6 +577,8 @@ public class PEFile implements Closeable {
      * The size of the local heap space to reserve. Only SizeOfHeapCommit is
      * committed; the rest is made available one page at a time until the
      * reserve size is reached.
+     * 
+     * @return the size of the local heap space to reserve
      */
     public long getSizeOfHeapReserve() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -481,6 +590,8 @@ public class PEFile implements Closeable {
 
     /**
      * The size of the local heap space to commit.
+     * 
+     * @return the size of the local heap space to commit
      */
     public long getSizeOfHeapCommit() {
         if (PEFormat.PE32.equals(getFormat())) {
@@ -492,6 +603,8 @@ public class PEFile implements Closeable {
 
     /**
      * Reserved, must be zero.
+     * 
+     * @return zero
      */
     public long getLoaderFlags() {
         return readDWord(peHeaderOffset, PEFormat.PE32.equals(getFormat()) ? 112 : 128);
@@ -500,6 +613,8 @@ public class PEFile implements Closeable {
     /**
      * The number of data-directory entries in the remainder of the optional
      * header. Each describes a location and size.
+     * 
+     * @return the number of data-directory entries
      */
     public int getNumberOfRvaAndSizes() {
         return (int) readDWord(peHeaderOffset, PEFormat.PE32.equals(getFormat()) ? 116 : 132);
@@ -511,6 +626,9 @@ public class PEFile implements Closeable {
 
     /**
      * Returns the data directory of the specified type.
+     * 
+     * @param type the type of data directory
+     * @return the data directory of the specified type
      */
     public DataDirectory getDataDirectory(DataDirectoryType type) {
         if (type.ordinal() >= getNumberOfRvaAndSizes()) {
@@ -527,6 +645,7 @@ public class PEFile implements Closeable {
      * 
      * @param type the type of the data directory
      * @param data the content of the data directory
+     * @throws IOException if an I/O error occurs
      */
     public synchronized void writeDataDirectory(DataDirectoryType type, byte[] data) throws IOException {
         DataDirectory directory = getDataDirectory(type);
@@ -587,9 +706,7 @@ public class PEFile implements Closeable {
         updateChecksum();
     }
 
-    /**
-     * Returns the authenticode signatures on the file.
-     */
+    @Override
     public synchronized List<CMSSignedData> getSignatures() {
         List<CMSSignedData> signatures = new ArrayList<>();
         
@@ -617,6 +734,12 @@ public class PEFile implements Closeable {
         }
         
         return signatures;
+    }
+
+    @Override
+    public void setSignature(CMSSignedData signature) throws IOException {
+        CertificateTableEntry entry = new CertificateTableEntry(signature);
+        writeDataDirectory(DataDirectoryType.CERTIFICATE_TABLE, entry.toBytes());
     }
 
     private synchronized List<CertificateTableEntry> getCertificateTable() {
@@ -651,6 +774,8 @@ public class PEFile implements Closeable {
 
     /**
      * Print detailed informations about the PE file.
+     * 
+     * @param out the output stream where the info is printed
      */
     public void printInfo(OutputStream out) {
         printInfo(new PrintWriter(out, true));
@@ -658,6 +783,8 @@ public class PEFile implements Closeable {
 
     /**
      * Print detailed informations about the PE file.
+     * 
+     * @param out the output writer where the info is printed
      */
     public void printInfo(PrintWriter out) {
         if (file != null) {
@@ -713,7 +840,7 @@ public class PEFile implements Closeable {
         for (DataDirectoryType type : DataDirectoryType.values()) {
             DataDirectory entry = getDataDirectory(type);
             if (entry != null && entry.exists()) {
-                out.printf("  %-30s 0x%08x %8d bytes\n", type, entry.getVirtualAddress(), entry.getSize());
+                out.printf("  %-30s 0x%08x %8d bytes%n", type, entry.getVirtualAddress(), entry.getSize());
             }
         }
         out.println();
@@ -723,7 +850,7 @@ public class PEFile implements Closeable {
         List<Section> sections = getSections();
         for (int i = 0; i < sections.size(); i++) {
             Section section = sections.get(i);
-            out.printf("  #%d  %-8s     %8d       0x%08x       %8d    0x%08x  %s\n", i + 1, section.getName(), section.getVirtualSize(), section.getVirtualAddress(), section.getSizeOfRawData(), section.getPointerToRawData(), section.getCharacteristics());
+            out.printf("  #%d  %-8s     %8d       0x%08x       %8d    0x%08x  %s%n", i + 1, section.getName(), section.getVirtualSize(), section.getVirtualAddress(), section.getSizeOfRawData(), section.getPointerToRawData(), section.getCharacteristics());
         }
         out.println();
         
@@ -750,8 +877,13 @@ public class PEFile implements Closeable {
      * Compute the digest of the file. The checksum field, the certificate
      * directory table entry and the certificate table are excluded from
      * the digest.
+     * 
+     * @param digest the message digest to update
+     * @return the digest of the file
+     * @throws IOException if an I/O error occurs
      */
-    private synchronized byte[] computeDigest(MessageDigest digest) throws IOException {
+    @Override
+    public synchronized byte[] computeDigest(MessageDigest digest) throws IOException {
         long checksumLocation = peHeaderOffset + 88;
         
         DataDirectory certificateTable = getDataDirectory(DataDirectoryType.CERTIFICATE_TABLE);
@@ -784,12 +916,13 @@ public class PEFile implements Closeable {
     }
 
     /**
-     * Update the specified digest by reading the underlying RandomAccessFile
+     * Update the specified digest by reading the underlying SeekableByteChannel
      * from the start offset included to the end offset excluded.
      * 
-     * @param digest
-     * @param startOffset
-     * @param endOffset
+     * @param digest      the message digest to update
+     * @param startOffset the start offset
+     * @param endOffset   the end offset
+     * @throws IOException if an I/O error occurs
      */
     private void updateDigest(MessageDigest digest, long startOffset, long endOffset) throws IOException {
         channel.position(startOffset);
@@ -813,15 +946,27 @@ public class PEFile implements Closeable {
      * Compute the checksum of the file using the specified digest algorithm.
      * 
      * @param algorithm the digest algorithm, typically SHA1
+     * @return the checksum of the file
+     * @throws IOException if an I/O error occurs
      */
     public byte[] computeDigest(DigestAlgorithm algorithm) throws IOException {
         return computeDigest(algorithm.getMessageDigest());
     }
 
+    @Override
+    public ASN1Object createIndirectData(DigestAlgorithm digestAlgorithm) throws IOException {
+        AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(digestAlgorithm.oid, DERNull.INSTANCE);
+        DigestInfo digestInfo = new DigestInfo(algorithmIdentifier, computeDigest(digestAlgorithm));
+        SpcAttributeTypeAndOptionalValue data = new SpcAttributeTypeAndOptionalValue(AuthenticodeObjectIdentifiers.SPC_PE_IMAGE_DATA_OBJID, new SpcPeImageData());
+
+        return new SpcIndirectDataContent(data, digestInfo);
+    }
+
     /**
      * Increase the size of the file up to a size that is a multiple of the specified value.
      * 
-     * @param multiple
+     * @param multiple the size of the byte alignment
+     * @throws IOException if an I/O error occurs
      */
     public synchronized void pad(int multiple) throws IOException {
         long padding = (multiple - channel.size() % multiple) % multiple;

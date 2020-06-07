@@ -6,39 +6,89 @@
   <parent>
     <groupId>net.jsign</groupId>
     <artifactId>jsign-parent</artifactId>
-    <version>2.0</version>
+    <version>3.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>Jsign - Code signing for Windows executables (Core)</name>
-  <version>2.0</version>
+  <name>Jsign - Code signing for Windows executables, Microsoft Installers and scripts (Core)</name>
+  <version>3.1</version>
   <packaging>jar</packaging>
-
-  <inceptionYear>2012</inceptionYear>
-
-  <description>
-    Pure Java implementation of Microsoft Authenticode for signing Windows executable files
-  </description>
-  <url>http://ebourg.github.com/jsign</url>
-
-  <licenses>
-    <license>
-      <name>The Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
 
   <dependencies>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
-      <version>1.58</version>
+      <version>1.65</version>
     </dependency>
 
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
-      <version>1.58</version>
+      <version>1.65</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>4.1.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.19</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.9</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.unbound-tech</groupId>
+      <artifactId>unbound-java-provider</artifactId>
+      <version>2.0.2004.44091</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.siom79.japicmp</groupId>
+        <artifactId>japicmp-maven-plugin</artifactId>
+        <version>0.14.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>cmp</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <parameter>
+            <onlyModified>true</onlyModified>
+            <onlyBinaryIncompatible>true</onlyBinaryIncompatible>
+            <includeSynthetic>true</includeSynthetic>
+            <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
+            <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
+            <excludes>
+              <exclude>net.jsign.asn1.*</exclude>
+            </excludes>
+            <skipXmlReport>true</skipXmlReport>
+            <skipDiffReport>true</skipDiffReport>
+          </parameter>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
