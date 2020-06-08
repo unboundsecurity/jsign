@@ -60,7 +60,7 @@ Whereas the `jsign.xml` is
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="UbSign" basedir="." default="ubsign">
    <target name="ubsign">
-      <taskdef name="UbSignTask" classname="net.jsign.PESignerTask" classpath="ub-jsign-ant.jar" />
+      <taskdef name="UbSignTask" classname="net.jsign.JsignTask" classpath="ub-jsign-ant.jar" />
       <UbSignTask file="file-name" partition="part1" alias="key-alias" storetype="dyadic" />
    </target>
 </project>
