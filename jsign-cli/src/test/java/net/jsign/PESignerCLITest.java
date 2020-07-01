@@ -37,7 +37,7 @@ import net.jsign.pe.PEFile;
 
 public class PESignerCLITest extends TestCase {
 
-    private PESignerCLI cli;
+    private JsignCLI cli;
     private File sourceFile = new File("target/test-classes/wineyes.exe");
     private File targetFile = new File("target/test-classes/wineyes-signed-with-cli.exe");
     
@@ -48,7 +48,7 @@ public class PESignerCLITest extends TestCase {
     private static final long SOURCE_FILE_CRC32 = 0xA6A363D8L;
 
     protected void setUp() throws Exception {
-        cli = new PESignerCLI();
+        cli = new JsignCLI();
         
         // remove the files signed previously
         if (targetFile.exists()) {
@@ -61,7 +61,7 @@ public class PESignerCLITest extends TestCase {
     }
 
     public void testPrintHelp() throws Exception {
-        PESignerCLI.main("--help");
+        JsignCLI.main("--help");
     }
 
     public void testMissingKeyStore() throws Exception {
@@ -454,7 +454,7 @@ public class PESignerCLITest extends TestCase {
         System.setSecurityManager(manager);
 
         try {
-            PESignerCLI.main("foo.exe");
+            JsignCLI.main("foo.exe");
             fail("VM not terminated");
         } catch (SecurityException e) {
             // expected

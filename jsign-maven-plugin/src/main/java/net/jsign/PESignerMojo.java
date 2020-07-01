@@ -98,7 +98,7 @@ public class PESignerMojo extends AbstractMojo {
     private boolean replace;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        PESignerHelper helper = new PESignerHelper(new MavenConsole(getLog()), "element");
+        SignerHelper helper = new SignerHelper(new MavenConsole(getLog()), "element");
         
         helper.name(name);
         helper.url(url);
