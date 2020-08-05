@@ -36,10 +36,11 @@ Use the `--storepass` parameter to provide credentials for the user performing j
  
     For example:
 
-    `--storepass '{"username":"Signer1", "password":"Signer1!"}'`
-
-    `--storepass '{"username":"USER",    "password":"User100!"}'`
-
+    ```
+    --storepass '{"username":"Signer1", "password":"Signer1!"}'
+    --storepass '{"username":"USER",    "password":"User100!"}'
+    ```
+    
 **Note:** The JSON string must be delimited by single quotes or any other method as applicable in your shell.
 
 ## Import a Code Signing Certificate
@@ -90,7 +91,7 @@ ucl partition list
  Partition 1: CodeSign1
 ```
 
-The CodeSign1 partition has:
+The *CodeSign1* partition has:
 
 * A certificate and its matching private key, both named *key-pfx*: 
     ```
@@ -107,9 +108,9 @@ The CodeSign1 partition has:
          user
     ```
 
-To sign a file on behalf of user *signer100* using the private key associated with the *key-pfx* certificate:
+To sign a file on behalf of user *Signer100* using the private key associated with the *key-pfx* certificate:
 
-1. Make sure that the PKCS #11 configuration file refers to slot=1 according to the listed partition number (`Partition 1: CodeSign1`). For example: 
+1. Make sure that the PKCS #11 configuration file refers to `slot=1` according to the listed partition number (`Partition 1: CodeSign1`). For example: 
     ```
     cat ~/CodeSign1Pkcs11.cfg
     name = DyadicPKCS
@@ -130,6 +131,7 @@ To sign a file on behalf of user *signer100* using the private key associated wi
     ~/setup1.exe
     ```
    Response:
+   
    `Adding Authenticode signature to setup1.exe`
 
 
