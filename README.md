@@ -75,7 +75,7 @@ java -jar .\ub-jsign-cli.jar --partition part1 --storetype dyadic --alias key-al
 Use the following syntax to sign Windows PE files, such as *.exe* and *.dll* files:
 
 ```
-java -jar <WORKING DIRECTORY>/usr/share/jsign/jsign-2.0.jar \
+java -jar <WORKING DIRECTORY>/usr/share/jsign/ub-jsign-cli.jar \
  --keystore <PKCS#11 CONFIG FILE that specifies a particular UKC partition> \
  --storepass <see "User Credentials" above> \
  --storetype PKCS11 \
@@ -122,7 +122,7 @@ To sign a file on behalf of user *Signer100* using the private key associated wi
     `'{"username":"Signer100", "password":"Signer100!"}'`
 3. Sign the file: 
     ```
-    java -jar ~/usr/share/jsign/jsign-2.0.jar \
+    java -jar ~/usr/share/jsign/ub-jsign-cli.jar \
     --keystore ~/CodeSign1Pkcs11.cfg \
     --storepass '{"username":"Signer100", "password":"Signer100!"}' \
     --storetype PKCS11 \
