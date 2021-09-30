@@ -264,10 +264,14 @@ class SignerHelper {
         if ("DYADIC".equalsIgnoreCase(storetype)) {
             provider = new DYCryptoProvider(partition);
             KeyStore ks;
-
             try {
-                ks = KeyStore.getInstance("PKCS11", provider);
-                ks.load(null);
+            	ks = KeyStore.getInstance("PKCS11", provider);
+		if(this.storepass == null){
+			ks.load(null);
+		}
+		else{
+			ks.load(null,this.storepass.toCharArray());
+		}
             } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException e) {
                 throw new SignerException(e.getMessage(), e);
             }
